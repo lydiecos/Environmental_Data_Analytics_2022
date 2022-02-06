@@ -37,7 +37,22 @@ o19 <- read.csv("../Data/Raw/EPAair_O3_NC2019_raw.csv")
 pm18 <- read.csv("../Data/Raw/EPAair_PM25_NC2018_raw.csv")
 pm19 <- read.csv("../Data/Raw/EPAair_PM25_NC2019_raw.csv")
 
-#2
+#2 Explore the datasets
+dim(o18) #Dimensions of O3, 2018
+colnames(o18) #Column names of O3, 2018
+str(o18) #Structure of O3, 2018
+
+dim(o19) #Dimensions of O3, 2019
+colnames(o19) #Column names of O3, 2019
+str(o19) #Structure of O3, 2019
+
+dim(pm18) #Dimensions of PM25, 2018
+colnames(pm18) #Column names of PM25, 2018
+str(pm18) #Structure of PM25, 2018
+
+dim(pm19) #Dimensions of PM25, 2019
+colnames(pm19) #Column names of PM25, 2019
+str(pm19) #Structure of PM25, 2019
 ```
 
 ## Wrangle individual datasets to create processed files.
@@ -47,14 +62,31 @@ pm19 <- read.csv("../Data/Raw/EPAair_PM25_NC2019_raw.csv")
 6. Save all four processed datasets in the Processed folder. Use the same file names as the raw files but replace "raw" with "processed".
 
 ```{r}
-#3
+#3 Change date column to date object for each dataset
+o18$Date <- as.Date(o18$Date, "%m/%d/%Y")
+o19$Date <- as.Date(o19$Date, "%m/%d/%Y")
+pm18$Date <- as.Date(pm18$Date, "%m/%d/%Y")
+pm19$Date <- as.Date(pm19$Date, "%m/%d/%Y")
 
-#4
+#4 Select columns of interest
+o18_processed <- o18 %>% 
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+o19_processed <- o19 %>% 
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+pm18_processed <- pm18 %>% 
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+pm19_processed <- pm19 %>% 
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
 
-#5
+#5 Update AQS_PARAMETER_DESC values for PM2.5 
+pm18_processed$AQS_PARAMETER_DESC <- "PM2.5"
+pm19_processed$AQS_PARAMETER_DESC <- "PM2.5"
 
-#6
-
+#6 Save results
+write.csv(o18_processed, "../Data/Processed/EPAair_O3_NC2018_processed.csv")
+write.csv(o19_processed, "../Data/Processed/EPAair_O3_NC2019_processed.csv")
+write.csv(pm18_processed, "../Data/Processed/EPAair_PM25_NC2018_processed.csv")
+write.csv(pm19_processed, "../Data/Processed/EPAair_PM25_NC2019_processed.csv")
 ```
 
 
@@ -72,9 +104,12 @@ pm19 <- read.csv("../Data/Raw/EPAair_PM25_NC2019_raw.csv")
 11. Save your processed dataset with the following file name: "EPAair_O3_PM25_NC2122_Processed.csv"
 
 ```{r}
-#7
+#7 Combine the four datasets
+airdata <- rbind(o18_processed,o19_processed)
 
 #8
+airdata_filtered <- airdata %>%
+  intersect(Site.Name, )
 
 #9
 
