@@ -105,18 +105,28 @@ write.csv(pm19_processed, "../Data/Processed/EPAair_PM25_NC2019_processed.csv")
 
 ```{r}
 #7 Combine the four datasets
-airdata <- rbind(o18_processed,o19_processed)
+airdata <- rbind(o18_processed,o19_processed,pm18_processed,pm19_processed)
 
 #8
 airdata_filtered <- airdata %>%
-  intersect(Site.Name, )
+  filter(Site.Name %in% c("Linville Falls", "Durham Armory", "Leggett", "Hattie Avenue", "Clemmons Middle", "Mendenhall School", "Frying Pan Mountain", "West Johnston Co.", "Garinger High School", "Castle Hayne", "Pitt Agri. Center", "Bryson City", "Millbrook School")) %>%
+  group_by(Date, Site.Name, AQS_PARAMETER_DESC, COUNTY) %>%
+  summarise(meanAQI = mean(DAILY_AQI_VALUE), 
+            meanLat = mean(SITE_LATITUDE),
+            meanLong = mean(SITE_LONGITUDE)) %>%
+  mutate(Month = month(Date),
+         Year = year(Date))
 
-#9
+#9 Spread AQI values according to ozone and PM
+airdata_filtered_spread <- pivot_wider(airdata_filtered, 
+                                       names_from = AQS_PARAMETER_DESC,
+                                       values_from = meanAQI)
 
-#10
+#10 Call dimensions
+dim(airdata_filtered_spread)
 
-#11
-
+#11 Save dataset
+write.csv(airdata_filtered_spread, "../Data/Processed/EPAair_O3_PM25_NC2122_Processed.csv")
 ```
 
 
@@ -130,12 +140,16 @@ airdata_filtered <- airdata %>%
 
 ```{r}
 #12(a,b)
-
+airdata_12 <- airdata_filtered_spread %>%
+  group_by(Site.Name, Month, Year) %>%
+  summarise(meanAQI_O2 = mean(Ozone),
+            meanAQI_PM2.5 = mean(PM2.5)) %>%
+  drop_na()
 
 #13
-
+dim(airdata_12)
 ```
 
 14. Why did we use the function `drop_na` rather than `na.omit`?
 
-> Answer: 
+> Answer: Because na.omit is from a different package. Given that we are working with dplyr pipes, we need to use dplyer functions.
