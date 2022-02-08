@@ -26,16 +26,21 @@ The completed exercise is due on Monday, Feb 7 @ 7:00pm.
 ```{r, message = FALSE}
 #1 Check working directory, load packages, import files
 getwd()
+#setwd("../Environmental_Data_Analytics_2022/")
 
 # Load packages
 library(tidyverse)
 library(lubridate)
 
 # Upload raw files
-o18 <- read.csv("../Data/Raw/EPAair_O3_NC2018_raw.csv")
-o19 <- read.csv("../Data/Raw/EPAair_O3_NC2019_raw.csv")
-pm18 <- read.csv("../Data/Raw/EPAair_PM25_NC2018_raw.csv")
-pm19 <- read.csv("../Data/Raw/EPAair_PM25_NC2019_raw.csv")
+o18 <- read.csv("../Data/Raw/EPAair_O3_NC2018_raw.csv",
+                stringsAsFactors = TRUE)
+o19 <- read.csv("../Data/Raw/EPAair_O3_NC2019_raw.csv",
+                stringsAsFactors = TRUE)
+pm18 <- read.csv("../Data/Raw/EPAair_PM25_NC2018_raw.csv",
+                 stringsAsFactors = TRUE)
+pm19 <- read.csv("../Data/Raw/EPAair_PM25_NC2019_raw.csv",
+                 stringsAsFactors = TRUE)
 
 #2 Explore the datasets
 dim(o18) #Dimensions of O3, 2018
