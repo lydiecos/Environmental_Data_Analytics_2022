@@ -37,8 +37,10 @@ getwd()
 library(tidyverse)
 library(cowplot)
 # Import data
-PeterPaul <- read.csv("./Data/Processed/NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv", stringsAsFactors = TRUE)
-Niwot <- read.csv("./Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv", stringsAsFactors = TRUE)
+PeterPaul <- read.csv("../Data/Processed/NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv", 
+                      stringsAsFactors = TRUE)
+Niwot <- read.csv("../Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv", 
+                  stringsAsFactors = TRUE)
 
 # 2. Check format of date columns and fix
 str(PeterPaul$sampledate) # Factor
