@@ -151,7 +151,25 @@ Create three plots, each with appropriately formatted axes and legends. Choose a
 
 ```{r}
 #Exercise 2:
+ggplot(EPAair) +
+  geom_density(aes(x=Ozone, fill = as.factor(Year)), alpha=.5) +
+  theme_bw() +
+  labs(fill="Year") +
+  scale_fill_manual(values=c("seagreen","purple"))
 
+ggplot(EPAair, aes(x=as.factor(Year), y=Ozone)) +
+  geom_boxplot() +
+  theme_bw() +
+  labs(fill="Year") +
+  stat_summary(geom="text", fun.y=max, vjust=-1, size=4,
+               label=c("a","b"), color="red")
+
+ggplot(EPAair, aes(x=as.factor(Year), y=Ozone), alpha=.5) +
+  geom_violin(draw_quantiles  = 0.5) +
+  theme_bw() +
+  labs(fill="Year") +
+  stat_summary(geom="text", fun.y=max, vjust=-1, size=4,
+               label=c("a","b"), color="red") 
 
 ```
 
@@ -164,11 +182,16 @@ For the NTL-LTER dataset, can we predict PM2.5 from Ozone?
 ```{r}
 
 #Exercise 3: Run a linear regression PM2.5 by Ozone. Find the p-value and R-squared value. 
-
-
+lmopm <- lm(data=EPAair, PM2.5 ~ Ozone)
+summary(lmopm)
+# p <  0.005
+# Adjusted R2 = 0.1314
 
 #Exercise 4: Build a scatterplot. Add a line and standard error for the linear regression. 
-
+ggplot(EPAair, aes(x=Ozone, y=PM2.5)) +
+  geom_point() +
+  theme_bw() +
+  geom_smooth(method=lm, color="red")
 
 
 ```
