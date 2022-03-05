@@ -1,6 +1,6 @@
 ---
 title: "Assignment 7: Time Series Analysis"
-author: "Student Name"
+author: "Lydie Costes"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -28,7 +28,20 @@ The completed exercise is due on Monday, March 14 at 7:00 pm.
 * Set your ggplot theme
 
 ```{r}
-#1
+#1. Get wd, load packages, and set theme
+getwd()
+
+library(tidyverse)
+library(lubridate)
+library(trend)
+library(zoo)
+library(Kendall)
+library(tseries)
+require(data.table)
+#install.packages("chron")
+library(chron)
+
+theme_set(theme_bw())
 
 ```
 
@@ -36,8 +49,20 @@ The completed exercise is due on Monday, March 14 at 7:00 pm.
 2. Import the ten datasets from the Ozone_TimeSeries folder in the Raw data folder. These contain ozone concentrations at Garinger High School in North Carolina from 2010-2019 (the EPA air database only allows downloads for one year at a time). Import these either individually or in bulk and then combine them into a single dataframe named `GaringerOzone` of 3589 observation and 20 variables. 
 
 ```{r, message = FALSE}
-#2
+#2. Import files
 
+# set working directory to the folder with the data
+setwd("./Data/Raw/Ozone_TimeSeries/")
+# create a list of files
+ozone_files <- list.files(pattern = "*.csv")
+# combine files into one dataset
+ozone_dataset = do.call(rbind, lapply(ozone_files, fread))
+# remove intermediary file
+rm(ozone_files)
+# make dataset a dataframe
+GaringerOzone <- as.data.frame(unclass(ozone_dataset))
+
+setwd("../")
 
 ```
 
@@ -52,14 +77,22 @@ The completed exercise is due on Monday, March 14 at 7:00 pm.
 6. Use a `left_join` to combine the data frames. Specify the correct order of data frames within this function so that the final dimensions are 3652 rows and 3 columns. Call your combined data frame GaringerOzone. 
 
 ```{r}
-# 3
+# 3. 
+GaringerOzone$Date <- as.Date(GaringerOzone$Date, "%m/%d/%Y")
 
-# 4
+# 4.
+GaringerOzone <- GaringerOzone %>%
+  select(Date, Daily.Max.8.hour.Ozone.Concentration, DAILY_AQI_VALUE)
 
-# 5
+# 5.
+# List all dates
+Days <- as.data.frame(seq(from = as.Date("2010-01-01"), to = as.Date("2019-12-31"), by = "days"))
+# Rename column
+colnames(Days) <- "Date"
 
-# 6
-
+# 6.
+GaringerOzone <- left_join(Days, GaringerOzone)
+colnames(GaringerOzone)[2] <- "O3ConcMax"
 ```
 
 ## Visualize
@@ -68,10 +101,15 @@ The completed exercise is due on Monday, March 14 at 7:00 pm.
 
 ```{r}
 #7
+ggplot(GaringerOzone, aes(x=Date, y=O3ConcMax)) +
+  geom_line() +
+  geom_smooth(method="lm") +
+  labs(x="Year", y="Maximum Concentration of Ozone (ppm)") +
+  scale_x_date(date_breaks = "years", date_labels="%Y")
 
 ```
 
->Answer: 
+>Answer: There is a slight downward trend in ozone levels over time, but we would need to run statistical analyses to see whether the trend is significant.
 
 ## Time Series Analysis
 
@@ -80,17 +118,26 @@ Study question: Have ozone concentrations changed over the 2010s at this station
 8. Use a linear interpolation to fill in missing daily data for ozone concentration. Why didn't we use a piecewise constant or spline interpolation?
 
 ```{r}
-#8
+#8.
+GaringerOzone_clean <- GaringerOzone %>% 
+  mutate(O3ConcMax.clean = zoo::na.approx(O3ConcMax))
 
 ```
 
-> Answer:  
+> Answer:  We don't use the piecewise constant method because we don't have any reason to believe that the date immediately before or immediately after the missing date is a better representation of that day. We don't use the spline method because we don't have a reason to expect that the pattern is quadratic.
 
 
 9. Create a new data frame called `GaringerOzone.monthly` that contains aggregated data: mean ozone concentrations for each month. In your pipe, you will need to first add columns for year and month to form the groupings. In a separate line of code, create a new Date column with each month-year combination being set as the first day of the month (this is for graphing purposes only)
 
 ```{r}
-#9
+#9.
+GaringerOzone.monthly  <- GaringerOzone %>%
+  mutate(Year = year(Date),
+         Month = month(Date)) %>%
+  group_by(Year, Month) %>%
+  drop_na() %>%
+  summarise(Average_O3 = mean(O3ConcMax)) %>%
+  mutate(Date = as.Date(paste(Month, "01", Year, sep="/"), "%m/%d/%Y"))
 
 ```
 
