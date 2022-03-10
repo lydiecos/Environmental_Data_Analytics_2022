@@ -52,7 +52,7 @@ theme_set(theme_bw())
 #2. Import files
 
 # set working directory to the folder with the data
-setwd("./Data/Raw/Ozone_TimeSeries/")
+setwd("../Data/Raw/Ozone_TimeSeries/")
 # create a list of files
 ozone_files <- list.files(pattern = "*.csv")
 # combine files into one dataset
@@ -216,7 +216,7 @@ ggplot(GaringerOzone.monthly, aes(Date, Average_O3)) +
 # Extract seasonal component from decomposed timeseries
 GaringerOzone.monthly.trend <- as.data.frame(GaringerOzone.monthly.ts.decomposed$time.series[,1:3])
 
-# Add observed data and date
+# Add observed data and date and subtract season
 GaringerOzone.monthly.trend <- GaringerOzone.monthly.trend %>%
   mutate(Date = GaringerOzone.monthly$Date,
          Observed = GaringerOzone.monthly$Average_O3,
@@ -227,8 +227,11 @@ MannKendall(GaringerOzone.monthly.trend[,6])
 
 ggplot(GaringerOzone.monthly.trend, aes(Date, Subtracted)) +
   geom_point() +
-  geom_line()
+  geom_line() +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(y = "Non-Seasonal Ozone Concentration (ppm)") +
+  scale_x_date(date_breaks = "years", date_labels="%Y")
 
 ```
 
-> Answer: After subtracting seasonality, there is still a significant downward trend and in fact it is stronger.
+> Answer: After subtracting seasonality, there is still a significant downward trend and in fact the effect is stronger (tau = -0.179, 2-sided p-value = 0.004).
