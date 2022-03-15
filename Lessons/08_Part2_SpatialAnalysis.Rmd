@@ -49,6 +49,7 @@ library(lubridate)
 library(sf)
 library(mapview)
 library(RColorBrewer)
+# mapviewOptions(fgb = FALSE)
 ```
 
 # 2 READING IN SPATIAL DATA
@@ -97,7 +98,6 @@ colnames(counties_sf)
 #
 st_crs(counties_sf) 
 
-
 #
 nrow(counties_sf)
 
@@ -117,19 +117,19 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r read HUCs shapefile}
 #Read the shapefile into an sf dataframe named "huc8_sf"
-
+huc8_sf <- st_read("./Data/Spatial/NCHUC8.shp")
 
 #Reveal the columns
-
+colnames(huc8_sf)
 
 #Check the CRS
-
+st_crs(huc8_sf)
 
 #Examine some records
-
+head(huc8_sf)
 
 #View the data as a map, colored by the acreage in each
-
+mapView(huc8_sf, zcol = "ACRES")
 
 ```
 
@@ -139,11 +139,15 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r Select the Upper Neuse HUC 8}
 #Read the shapefile into an sf dataframe
-
+huc8_sf_filtered <- st_read("./Data/Spatial/NCHUC8.shp")  %>%
+  filter(SUBBASIN == 'Upper Neuse')
 
 
 #Create a map
-
+mapView(huc8_sf_filtered)
+ggplot() +
+  geom_sf(data = huc8_sf, fill = "orange") +
+  geom_sf(data = huc8_sf_filtered, fill = "purple")
 
 ```
 
@@ -239,17 +243,23 @@ ggplot() +
 
 ```{r}
 #Compute HUC8 wind energy
-
-
-
+wind_nc_raw <- read.csv(
+  'https://raw.githubusercontent.com/ENV859/EnviroAtlasData/main/Wind_Energy.csv',
+  colClasses = c('HUC_12' = 'factor')) %>%
+  mutate(HUC_8 = substr(HUC_12, 1, 8)) %>%
+  group_by(HUC_8)  %>%
+  summarize(SunWindEnergy = sum(AvgWindEnergy))
 
 #Join to HUC_8 features
-
+wind_huc_joined <- huc8_sf %>%
+  left_join(wind_nc_raw)
 
 
 
 #View the outputs
-
+ggplot(wind_huc_joined) +
+  geom_sf(aes(fill = SunWindEnergy)) +
+  labs(title = "Wind energy by HUC 8", fill = "MW/year")
 
 
 ```
@@ -277,13 +287,13 @@ mapview(state_sf)
 
 
 
-
 #Summarize on DWQ Basin value
+huc2_sf <- huc8_sf %>%
+  group_by(DWQ_Basin) %>%
+  summarize(totalAcres = sum(ACRES),
+            totalMiles = sum(SQ_MILES))
 
 
-
-
-  
 #Map the data
 
 ```
@@ -363,17 +373,27 @@ mapview(neuse_counties_sf, zcol='Area_m2')
 *Now you try*: Select the counties in the "Triangle" (Chatham, Durham, Orange, and Wake). Then select the HUC_8s that touch these counties. And finally, select the portions of the HUC_8s that occur within these counties.
 
 ```{r EXERCISE: Clipping}
-#Select the Triangle County from the 
-
-
+#Select the Triangle County from the rest
+triangle_co <- counties_sf_utm %>%
+  filter(NAME %in% c('Chatham', 'Durham', 'Orange', 'Wake'))
 
   
 #Grab the intersecting HUC_8s
+triangle_HUCs <- huc8_sf_utm %>%
+  filter(st_intersects(x = ., y = triangle_co, sparse = F))
 
+triangle_HUCs <- huc8_sf_utm[triangle_co,]
+
+ggplot() +
+  geom_sf(data = triangle_co, color = "grey") +
+  geom_sf(data = huc8_sf_utm, color = "green", fill = NA)  +
+  geom_sf(data = triangle_HUCs, color = "blue", fill = NA)
 
 
 #Intersect the HUC_8s
-
+triangle_HUCs_clipped <- triangle_co %>%
+  st_intersection(huc8_sf_utm)
+mapview(triangle_HUCs_clipped)
 
 
 

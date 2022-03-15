@@ -100,7 +100,7 @@ mapview(GasPlants)
 ```{r Create a spatial dataframe from coordinate data}
 
 #Read in our processed EPA Air dataset, setting the Date column to be dates
-EPAair <- read.csv("./Data/Processed/EPAair_O3_PM25_NC2021_Processed.csv", stringsAsFactors = TRUE) %>% 
+EPAair <- read.csv("../Processed/EPAair_O3_PM25_NC2021_Processed.csv", stringsAsFactors = TRUE) %>% 
   mutate(Date = ymd(Date))
 
 #Wrangle so each site has only one record, computing mean ozone and PM2.5 at that site
